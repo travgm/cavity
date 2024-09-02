@@ -18,7 +18,13 @@ Written by Travis Montoya "travgm" (hexproof.sh
 A big shoutout to smelly_vx for the writeup on a nice implementation of the fractioned cavity
 technique. While the original was written for windows I decided to write this for Linux and implent
 a few of the suggested improvements. I didn't add the loader, which I may at a later point as I have
-some neat ideas for that.
+some neat ideas for that. 
+
+**Preface**
+Make note that we want to avoid using dependencies in scenarios other than PoC types. So this just shows
+the process where we could write our own encryption/obfuscation and utilize this same process. The
+route I chose for this is by nowhere perfect, but documented my initial thoughts through the process. As
+I make improvements and updates I will update the process as we go along.
 
 **How it works**
 
