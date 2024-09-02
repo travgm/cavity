@@ -29,10 +29,10 @@
 
 int
 aes_init (unsigned char *key_data, int key_data_len, unsigned char *salt,
-          EVP_CIPHER_CTX * d_ctx);
+	  EVP_CIPHER_CTX * d_ctx);
 
-unsigned char *
-aes_decrypt_frac (EVP_CIPHER_CTX * e, unsigned char *ciphertext, int *len);
+unsigned char *aes_decrypt_frac (EVP_CIPHER_CTX * e,
+				 unsigned char *ciphertext, int *len);
 
 int
 compare_fractions (const void *a, const void *b)
@@ -128,7 +128,7 @@ process_files (const char *out_name, const char *directory)
 	  continue;
 	}
 
-      FRACT_HEADER fhdr = {0};
+      FRACT_HEADER fhdr = { 0 };
       if (fread (&fhdr, sizeof (FRACT_HEADER), 1, frac_file) != 1)
 	{
 	  perror ("Error reading fraction header");
@@ -147,11 +147,10 @@ process_files (const char *out_name, const char *directory)
 	  hash_set = 1;
 	}
 
-      aes_init (original_hash, hash_len,
-		(unsigned char *) &salt, de);
+      aes_init (original_hash, hash_len, (unsigned char *) &salt, de);
 
       unsigned char frac_buffer[fhdr.fraction_len];
-      bzero(frac_buffer, fhdr.fraction_len);
+      bzero (frac_buffer, fhdr.fraction_len);
       size_t bytes_read =
 	fread (frac_buffer, 1, fhdr.fraction_len, frac_file);
       if (bytes_read <= 0)
@@ -160,9 +159,9 @@ process_files (const char *out_name, const char *directory)
 	  fclose (frac_file);
 	  continue;
 	}
-      
+
       unsigned char *de_frac_buffer;
-      int len = (int)bytes_read;
+      int len = (int) bytes_read;
       de_frac_buffer = aes_decrypt_frac (de, frac_buffer, &len);
       if (fwrite (de_frac_buffer, 1, len, out_file) <= 0)
 	{
@@ -172,7 +171,7 @@ process_files (const char *out_name, const char *directory)
 	}
 
       EVP_DigestUpdate (md_ctx, de_frac_buffer, len);
-      EVP_CIPHER_CTX_free(de);
+      EVP_CIPHER_CTX_free (de);
       fclose (frac_file);
     }
 
@@ -184,7 +183,7 @@ process_files (const char *out_name, const char *directory)
   if (!hash_set)
     {
       printf ("Error: No fractions found or unable to read original hash.\n");
-      EVP_MD_CTX_free(md_ctx);
+      EVP_MD_CTX_free (md_ctx);
       exit (1);
     }
 
@@ -196,11 +195,11 @@ process_files (const char *out_name, const char *directory)
     {
       printf
 	("Hash verification failed. Reassembled file may be corrupted.\n");
-      EVP_MD_CTX_free(md_ctx);
+      EVP_MD_CTX_free (md_ctx);
       exit (1);
     }
 
-  EVP_MD_CTX_free(md_ctx);
+  EVP_MD_CTX_free (md_ctx);
 }
 
 int

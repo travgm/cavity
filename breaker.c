@@ -29,8 +29,10 @@
 
 #include "cavity.h"
 
-int aes_init (unsigned char *key_data, int key_data_len, unsigned char *salt, EVP_CIPHER_CTX * e_ctx);
-unsigned char *aes_encrypt_frac(EVP_CIPHER_CTX * e, unsigned char *plaintext, int *len);
+int aes_init (unsigned char *key_data, int key_data_len, unsigned char *salt,
+	      EVP_CIPHER_CTX * e_ctx);
+unsigned char *aes_encrypt_frac (EVP_CIPHER_CTX * e, unsigned char *plaintext,
+				 int *len);
 
 void
 create_fraction (const char *file_name, const char *output_directory)
@@ -86,7 +88,7 @@ create_fraction (const char *file_name, const char *output_directory)
       FRACT_HEADER fhdr = { 0 };
       EVP_CIPHER_CTX *en = EVP_CIPHER_CTX_new ();
 
-      aes_init (md_value_hash, md_len, (unsigned char *)&salt, en);
+      aes_init (md_value_hash, md_len, (unsigned char *) &salt, en);
 
       fhdr.magic = 0x69;
       fhdr.position = fraction_count;
@@ -106,15 +108,15 @@ create_fraction (const char *file_name, const char *output_directory)
 	}
 
       unsigned char *en_buffer;
-      int len = (int)ret;
+      int len = (int) ret;
       en_buffer = aes_encrypt_frac (en, frac_buffer, &len);
 
-      fhdr.fraction_len = (size_t)len;
+      fhdr.fraction_len = (size_t) len;
       if (fwrite (&fhdr, sizeof (FRACT_HEADER), 1, out_file) != 1)
-        {
-          perror ("Error writing fraction header");
-          exit (errno);
-        }
+	{
+	  perror ("Error writing fraction header");
+	  exit (errno);
+	}
 
       if (fwrite (en_buffer, 1, len, out_file) <= 0)
 	{
@@ -122,7 +124,7 @@ create_fraction (const char *file_name, const char *output_directory)
 	  exit (errno);
 	}
 
-      EVP_CIPHER_CTX_free(en);
+      EVP_CIPHER_CTX_free (en);
       fclose (out_file);
       fraction_count++;
     }
@@ -154,7 +156,7 @@ aes_init (unsigned char *key_data, int key_data_len, unsigned char *salt,
 }
 
 unsigned char *
-aes_encrypt_frac(EVP_CIPHER_CTX * e, unsigned char *plaintext, int *len)
+aes_encrypt_frac (EVP_CIPHER_CTX * e, unsigned char *plaintext, int *len)
 {
   int c_len = *len + AES_BLOCK_SIZE, f_len = 0;
   unsigned char *ciphertext = malloc (c_len);
