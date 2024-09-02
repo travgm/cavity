@@ -1,7 +1,5 @@
 Cavity
 ===============
-This directory contains the fractioned cavity loader implementation based off of smelly_vx's paper in
-vxug vol 1 zine. 
 
 Improvements Implemented:
 - Hashing of the executable file and we store the original hash in the fraction #0 header.
@@ -16,9 +14,9 @@ Written by Travis Montoya "travgm" (hexproof.sh
 ### Implementation
 
 A big shoutout to smelly_vx for the writeup on a nice implementation of the fractioned cavity
-technique. While the original was written for windows I decided to write this for Linux and implent
-a few of the suggested improvements. I didn't add the loader, which I may at a later point as I have
-some neat ideas for that. 
+technique in the vxug vol1 zine. While the original was written for windows I decided to write this 
+for Linux and implement a few of the suggested improvements. I didn't add the loader, which I may at 
+a later point as I have some neat ideas for that. 
 
 **Preface**
 
