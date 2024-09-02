@@ -32,7 +32,7 @@ aes_init (unsigned char *key_data, int key_data_len, unsigned char *salt,
           EVP_CIPHER_CTX * d_ctx);
 
 unsigned char *
-aes_decrypt (EVP_CIPHER_CTX * e, unsigned char *ciphertext, int *len);
+aes_decrypt_frac (EVP_CIPHER_CTX * e, unsigned char *ciphertext, int *len);
 
 int
 compare_fractions (const void *a, const void *b)
@@ -150,7 +150,7 @@ process_files (const char *out_name, const char *directory)
       aes_init (original_hash, hash_len,
 		(unsigned char *) &salt, de);
 
-      char frac_buffer[FRACTION_LEN];
+      unsigned char frac_buffer[fhdr.fraction_len];
       size_t bytes_read =
 	fread (frac_buffer, 1, fhdr.fraction_len, frac_file);
       if (bytes_read <= 0)
@@ -160,9 +160,9 @@ process_files (const char *out_name, const char *directory)
 	  continue;
 	}
       
-      char *de_frac_buffer;
+      unsigned char *de_frac_buffer;
       int len = (int)bytes_read;
-      de_frac_buffer = (char *)aes_decrypt (de, (unsigned char *)frac_buffer, &len);
+      de_frac_buffer = aes_decrypt_frac (de, frac_buffer, &len);
       if (fwrite (de_frac_buffer, 1, len, out_file) <= 0)
 	{
 	  perror ("Error writing to output file");
@@ -216,13 +216,13 @@ aes_init (unsigned char *key_data, int key_data_len, unsigned char *salt,
     }
 
   EVP_CIPHER_CTX_init (d_ctx);
-  EVP_EncryptInit_ex (d_ctx, EVP_aes_256_cbc (), NULL, key, iv);
+  EVP_DecryptInit_ex (d_ctx, EVP_aes_256_cbc (), NULL, key, iv);
 
   return 0;
 }
 
 unsigned char *
-aes_decrypt (EVP_CIPHER_CTX * e, unsigned char *ciphertext, int *len)
+aes_decrypt_frac (EVP_CIPHER_CTX * e, unsigned char *ciphertext, int *len)
 {
   int p_len = *len, f_len = 0;
   unsigned char *plaintext = malloc (p_len);
