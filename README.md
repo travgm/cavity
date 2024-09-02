@@ -15,7 +15,7 @@ Written by Travis Montoya "travgm" (hexproof.sh
 
 ### Implementation
 
-A big shoutout to smelly_vx for the nice writeup on a nice implementation of the fractioned cavity
+A big shoutout to smelly_vx for the writeup on a nice implementation of the fractioned cavity
 technique. While the original was written for windows I decided to write this for Linux and implent
 a few of the suggested improvements. I didn't add the loader, which I may at a later point as I have
 some neat ideas for that.
