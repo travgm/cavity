@@ -20,14 +20,14 @@ technique. While the original was written for windows I decided to write this fo
 a few of the suggested improvements. I didn't add the loader, which I may at a later point as I have
 some neat ideas for that.
 
-** How it works **
+**How it works**
 
 It works pretty simply, it takes an input file and a directory (its created if not found) and breaks
 the file up into 1024 byte (1KB) "fractions" to keep track of the data needed for re-assembly we create
 a FRACT_HEADER which holds some information we need and the builder reassembles it with that data:
 
 
-** The Breaker **
+**The Breaker**
 
 ```
 typedef struct
@@ -56,7 +56,7 @@ we could rename these as the fract header holds the information we need and the 
 reassemble the file. They can also be thrown into any directory. This would allow for the fractioned files
 to be hidden amongst thousands of files if wanted.
 
-** The Builder **
+**The Builder**
 
 The builder does alot more checking and work to reassemble the files, remember we need th EXACT information
 that we encrypted the fractions with to be able to decrypt them. If the header is tampered with in any way
@@ -85,7 +85,7 @@ was calculated during decryption.
 
 We end by closing closing the file and we now have a reassembled file that was fractioned.
 
-** The Loader **
+**The Loader**
 
 The breaker/builder hold the techniques used for hashing/encryption so you could still utilize the original method of
 how the loader worked by downloading the fractions and then decrypting them. Depending on the use case you still could
@@ -93,7 +93,7 @@ potentionally map them to the RWX memory and make it memory resident. The possib
 different ways is up to you. I initially was going to write a loader, but since I feel it doesn't hold much of the weight
 of this technique and could be specific to a use case I leave that up to whoever uses this code to come up with.
 
-** Closing **
+**Closing**
 
 If you see an errors/improvements or have suggestions feel free to send me an e-mail at trav@hexproof.sh or send me a
 message on discord.
