@@ -115,7 +115,7 @@ process_files (const char *out_name, const char *directory)
   md = EVP_sha256 ();
   md_ctx = EVP_MD_CTX_new ();
   EVP_DigestInit_ex (md_ctx, md, NULL);
-  unsigned char salt[8];
+  unsigned int salt[8];
 
   for (int i = 0; i < fraction_count; i++)
     {
@@ -151,6 +151,7 @@ process_files (const char *out_name, const char *directory)
 		(unsigned char *) &salt, de);
 
       unsigned char frac_buffer[fhdr.fraction_len];
+      bzero(frac_buffer, fhdr.fraction_len);
       size_t bytes_read =
 	fread (frac_buffer, 1, fhdr.fraction_len, frac_file);
       if (bytes_read <= 0)
@@ -179,11 +180,11 @@ process_files (const char *out_name, const char *directory)
   closedir (dir);
 
   EVP_DigestFinal_ex (md_ctx, calculated_hash, &md_len);
-  EVP_MD_CTX_free (md_ctx);
 
   if (!hash_set)
     {
       printf ("Error: No fractions found or unable to read original hash.\n");
+      EVP_MD_CTX_free(md_ctx);
       exit (1);
     }
 
@@ -195,8 +196,11 @@ process_files (const char *out_name, const char *directory)
     {
       printf
 	("Hash verification failed. Reassembled file may be corrupted.\n");
+      EVP_MD_CTX_free(md_ctx);
       exit (1);
     }
+
+  EVP_MD_CTX_free(md_ctx);
 }
 
 int
@@ -227,7 +231,7 @@ aes_decrypt_frac (EVP_CIPHER_CTX * e, unsigned char *ciphertext, int *len)
   int p_len = *len, f_len = 0;
   unsigned char *plaintext = malloc (p_len);
 
-  EVP_DecryptInit_ex (e, NULL, NULL, NULL, NULL);
+  //EVP_DecryptInit_ex (e, NULL, NULL, NULL, NULL);
   EVP_DecryptUpdate (e, plaintext, &p_len, ciphertext, *len);
   EVP_DecryptFinal_ex (e, plaintext + p_len, &f_len);
 

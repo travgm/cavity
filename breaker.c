@@ -116,7 +116,7 @@ create_fraction (const char *file_name, const char *output_directory)
           exit (errno);
         }
 
-      if (fwrite (en_buffer, 1, ret, out_file) <= 0)
+      if (fwrite (en_buffer, 1, len, out_file) <= 0)
 	{
 	  perror ("Error writing fraction data");
 	  exit (errno);
