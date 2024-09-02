@@ -11,6 +11,7 @@ typedef struct
 { 
   unsigned char magic;
   unsigned char hash[EVP_MAX_MD_SIZE];
+  unsigned int hash_len;
   unsigned int position;
   size_t fraction_len;
 } FRACT_HEADER;

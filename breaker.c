@@ -90,10 +90,10 @@ create_fraction (const char *file_name, const char *output_directory)
 
       fhdr.magic = 0x69;
       fhdr.position = fraction_count;
-      fhdr.fraction_len = ret;
       if (fraction_count == 0)
 	{
 	  memcpy (fhdr.hash, md_value_hash, md_len);
+	  fhdr.hash_len = md_len;
 	}
 
       snprintf (fraction_name, sizeof (fraction_name), "%s/frac_%u.bin",
@@ -105,16 +105,18 @@ create_fraction (const char *file_name, const char *output_directory)
 	  exit (errno);
 	}
 
-      if (fwrite (&fhdr, sizeof (FRACT_HEADER), 1, out_file) != 1)
-	{
-	  perror ("Error writing fraction header");
-	  exit (errno);
-	}
-
       unsigned char *en_buffer;
-      int len = strlen((char *)frac_buffer);
+      int len = (int)ret;
       en_buffer = aes_encrypt_frac (en, frac_buffer, &len);
-      if (fwrite (en_buffer, 1, ret, out_file) != ret)
+
+      fhdr.fraction_len = (size_t)len;
+      if (fwrite (&fhdr, sizeof (FRACT_HEADER), 1, out_file) != 1)
+        {
+          perror ("Error writing fraction header");
+          exit (errno);
+        }
+
+      if (fwrite (en_buffer, 1, ret, out_file) <= 0)
 	{
 	  perror ("Error writing fraction data");
 	  exit (errno);

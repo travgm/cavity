@@ -54,6 +54,7 @@ process_files (const char *out_name, const char *directory)
   int hash_set = 0;
   FractionInfo fractions[MAX_FRACTIONS];
   int fraction_count = 0;
+  int hash_len = 0;
 
   dir = opendir (directory);
   if (dir == NULL)
@@ -127,7 +128,7 @@ process_files (const char *out_name, const char *directory)
 	  continue;
 	}
 
-      FRACT_HEADER fhdr;
+      FRACT_HEADER fhdr = {0};
       if (fread (&fhdr, sizeof (FRACT_HEADER), 1, frac_file) != 1)
 	{
 	  perror ("Error reading fraction header");
@@ -135,38 +136,41 @@ process_files (const char *out_name, const char *directory)
 	  continue;
 	}
 
-      if (i == 0)
+      if (fhdr.position == 0)
 	{
-	  memcpy (original_hash, fhdr.hash, EVP_MAX_MD_SIZE);
+	  memcpy (original_hash, fhdr.hash, fhdr.hash_len);
+	  hash_len = fhdr.hash_len;
+
 	  // We need our salt for decryption
-	  memcpy (salt, fhdr.hash, 4);
-	  memcpy (salt + 4, fhdr.hash + strlen ((char *)fhdr.hash) - 4, 4);
+	  memcpy (salt, original_hash, 4);
+	  memcpy (salt + 4, original_hash + fhdr.hash_len - 4, 4);
 	  hash_set = 1;
 	}
 
-      aes_init (original_hash, strlen ((char *)original_hash),
+      aes_init (original_hash, hash_len,
 		(unsigned char *) &salt, de);
 
       char frac_buffer[FRACTION_LEN];
       size_t bytes_read =
 	fread (frac_buffer, 1, fhdr.fraction_len, frac_file);
-      if (bytes_read != fhdr.fraction_len)
+      if (bytes_read <= 0)
 	{
 	  perror ("Error reading fraction data");
 	  fclose (frac_file);
 	  continue;
 	}
+      
       char *de_frac_buffer;
-      int len = strlen ((char *) frac_buffer);
+      int len = (int)bytes_read;
       de_frac_buffer = (char *)aes_decrypt (de, (unsigned char *)frac_buffer, &len);
-      if (fwrite (de_frac_buffer, 1, bytes_read, out_file) != bytes_read)
+      if (fwrite (de_frac_buffer, 1, len, out_file) <= 0)
 	{
 	  perror ("Error writing to output file");
 	  fclose (frac_file);
 	  exit (1);
 	}
 
-      EVP_DigestUpdate (md_ctx, frac_buffer, bytes_read);
+      EVP_DigestUpdate (md_ctx, de_frac_buffer, len);
       EVP_CIPHER_CTX_free(de);
       fclose (frac_file);
     }
