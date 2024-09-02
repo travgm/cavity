@@ -21,6 +21,7 @@ a few of the suggested improvements. I didn't add the loader, which I may at a l
 some neat ideas for that. 
 
 **Preface**
+
 Make note that we want to avoid using dependencies in scenarios other than PoC types. So this just shows
 the process where we could write our own encryption/obfuscation and utilize this same process. The
 route I chose for this is by nowhere perfect, but documented my initial thoughts through the process. As
