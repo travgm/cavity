@@ -5,8 +5,6 @@
 #define BUFFER_SIZE  16384
 #define MAX_FRACTIONS 1000
 
-#define MMAP_PARAMS PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS
-
 typedef struct
 { 
   unsigned char magic;
