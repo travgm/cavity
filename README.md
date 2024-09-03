@@ -7,7 +7,9 @@ Improvements Implemented:
 - Encrypting each fraction with AES-256
 - Validating that each file is actually a fraction
 - You can put it to any directory (builder) and it verifies files and puts them in the right order by qsort
-- NOT Implemented (You can use original method with this builder and breaker basically if you like): Load each fraction into RWX memory and executing it once reassembled
+- We are currently writing the fractions to a buffer and mmap() them to RWX memory to execute. **WORK IN PROGRESS**
+
+TODO: Writeup on loader.c
 
 Written by Travis Montoya "travgm" (hexproof.sh
 
