@@ -24,12 +24,13 @@ typedef struct {
 	char *buffer;
 	size_t buffer_len;
 	int use_interp;
+	char *linker;
 	int argc;
 	ULEXEC_ENV *args;
 } ULEXEC_INFO;
 
 int
-ulexec_verify_elf64(ULEXEC_INFO *info) {
+_ulexec_verify_elf64(ULEXEC_INFO *info) {
 	Elf64_Ehdr ehdr = NULL;
 	if (info == NULL) {
 		return -1;
@@ -45,12 +46,24 @@ ulexec_verify_elf64(ULEXEC_INFO *info) {
 }
 
 int 
-ulexec_check_interp_required(char *buffer) {
+_ulexec_check_interp_required(ULEXEC_INFO *info) {
+	ELF64_Ehdr *ehdr = NULL;
+	ELF64_Phdr *phdr = NULL;
 
+	memcpy(&ehdr, info->buffer, sizeof(Elf64_Ehdr));
+	memcpy(&phdr, info->buffer + ehdr->e_phoff, sizeeof(Elf64_Ehdr));
+
+	for (int i = 0; i < ehdr->e_phnum; i++) {
+		if (phdr[i]->p_type == PT_INTERP) {
+			info->linker = (char *)info->buffer + phdr[i]->p_offset;
+			return 1;
+		}
+	}
+	return 0;
 }
 
 int
-ulexec_setup_memory() {
+_ulexec_setup_memory() {
 	FILE *fd = fopen(MEMORY_MAP, "r");
 	if (fd == NULL) {
 		return -1;
@@ -71,11 +84,8 @@ ulexec_setup_memory() {
 
 int 
 ulexec(ULEXEC_INFO *info, ULEXEC_ENV *env) {
-	Elf64_Ehdr *ehdr;
-	Elf64_Phdr *phdr;
-
-	int use_interp = check_interp_required(&info);
-
+	Elf64_Ehdr *ehdr = NULL;
+	Elf64_Phdr *phdr = NULL;
 
 	/**
 	 * Step 1. Preserve arguments
@@ -100,11 +110,16 @@ ulexec(ULEXEC_INFO *info, ULEXEC_ENV *env) {
 	/**
 	 * Step 2. Clean memory of calling process (text, data, heap)
 	 */
-	int ret = ulexec_setup_memory();
+	int ret = _ulexec_setup_memory();
 	if (ret != 0) {
 		return -1;
 	}
 
+	/**
+	 * Step 3. Check if we need to load a linker
+	 */
+	info->use_interp = _ulexec_check_interp_required(info);
+	
          
 }
 
@@ -115,12 +130,17 @@ ulexec_init_info(char *buffer, size_t buffer_len) {
 	memcpy(ul_info->buffer, buffer, buffer_len);
 	ul_info->buffer_len = buffer_len;
 
+	int is_elf64 = _ulexec_verify_elf64(info);
+	if (is_elf64 == -1) {
+		return NULL;
+	}
+
 	return ul_info;	
 }
 
 int 
 ulexec_free_info(ULEXEC_INFO *info) {
-	if ( == NULL) {
+	if (info == NULL) {
 		return -1;
 	}
 
