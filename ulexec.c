@@ -14,6 +14,8 @@
 #define MEMORY_MAP "/proc/self/maps"
 #define MEMORY_LINE "%lx-%lx"
 
+#define ALIGN_SIZE(sz, al) ((sz + al - 1) & ~(al - 1))
+
 typedef struct {
 	int argc;
 	char **argv;
@@ -26,6 +28,7 @@ typedef struct {
 	int use_interp;
 	char *linker;
 	int argc;
+	unsigned long total_mem;
 	ULEXEC_ENV *args;
 } ULEXEC_INFO;
 
@@ -62,6 +65,22 @@ _ulexec_check_interp_required(ULEXEC_INFO *info) {
 	return 0;
 }
 
+void
+_ulexec_get_total_memory(ULEXEC_INFO *info) {
+	ELF64_Ehdr *ehdr = NULL;
+	Elf64_Phdr *phdr = NULL;
+
+	memcpy(&ehdr, info->buffer, sizeof(Elf64_Ehdr));
+        memcpy(&phdr, info->buffer + ehdr->e_phoff, sizeeof(Elf64_Ehdr));
+
+
+        for (int i = 0; i < ehdr->e_phnum; i++) { 
+                if (phdr[i]->p_type == PT_LOAD) {
+                        info->total_mem += ALIGN_SIZE(phdr[i]->p_memsz, phdr[i]->p_align);
+                }
+        }
+}
+
 int
 _ulexec_setup_memory() {
 	FILE *fd = fopen(MEMORY_MAP, "r");
@@ -87,19 +106,14 @@ ulexec(ULEXEC_INFO *info, ULEXEC_ENV *env) {
 	Elf64_Ehdr *ehdr = NULL;
 	Elf64_Phdr *phdr = NULL;
 
-	/**
-	 * Step 1. Preserve arguments
-	 */
 	void *arg_table = mmap(NULL, 4096, PROT_READ | PORT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	if (arg_table == MAP_FAILED) {
 		return -1;
 	}
 	info>args->argc = env->argc;
-	// preserve addresses of argv and envp (so we know where to restore them later)
 	info->args->argv = (char **)((char *)arg_table + sizeof(ULEXEC_ENV));
 	info->args->envp = (char **)((char *)info->args->envp + env->argc * sizeof(char *));
 
-	// Copy actual command line arguments
 	for(int i = 0; i < env->argc; ++) {
 		info->args->argv[i] = strdup(env->argv[i]);
 	}
@@ -107,19 +121,17 @@ ulexec(ULEXEC_INFO *info, ULEXEC_ENV *env) {
 		info->args->envp[i] = strdup(env->envp[i]);
 	}
 
-	/**
-	 * Step 2. Clean memory of calling process (text, data, heap)
-	 */
 	int ret = _ulexec_setup_memory();
 	if (ret != 0) {
 		return -1;
 	}
 
-	/**
-	 * Step 3. Check if we need to load a linker
-	 */
 	info->use_interp = _ulexec_check_interp_required(info);
-	
+	_ulexec_get_total_memory(info);
+
+	if (info->use_interp == 1) {
+		// Load the interperter
+	}	
          
 }
 
@@ -129,6 +141,7 @@ ulexec_init_info(char *buffer, size_t buffer_len) {
 		
 	memcpy(ul_info->buffer, buffer, buffer_len);
 	ul_info->buffer_len = buffer_len;
+	ul_info->total_mem = 0;
 
 	int is_elf64 = _ulexec_verify_elf64(info);
 	if (is_elf64 == -1) {
