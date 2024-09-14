@@ -1,6 +1,10 @@
 Cavity
 ===============
 
+The first implementation to implement the improvements on the Fractioned Cavity Loader in VXUG vol 1
+
+A big thanks to vrzh and elfmaster for all their input and guidance.
+
 Improvements Implemented:
 - Hashing of the executable file and we store the original hash in the fraction #0 header.
 - Salt is computed from header
@@ -9,9 +13,7 @@ Improvements Implemented:
 - You can put it to any directory (builder) and it verifies files and puts them in the right order by qsort
 - We are currently writing the fractions to a buffer and mmap() them to RWX memory to execute. **WORK IN PROGRESS**
 
-TODO: Writeup on loader.c
-
-Written by Travis Montoya "travgm" (hexproof.sh
+Written by Travis Montoya "travgm" (hexproof.sh)
 
 ### Implementation
 
@@ -96,9 +98,12 @@ We end by closing closing the file and we now have a reassembled file that was f
 
 The breaker/builder hold the techniques used for hashing/encryption so you could still utilize the original method of
 how the loader worked by downloading the fractions and then decrypting them. Depending on the use case you still could
-potentionally map them to the RWX memory and make it memory resident. The possibilties to utilize the fractions in
-different ways is up to you. I initially was going to write a loader, but since I feel it doesn't hold much of the weight
-of this technique and could be specific to a use case I leave that up to whoever uses this code to come up with.
+potentionally map them to the RWX memory and make it memory resident. 
+
+I started writing an assembly based loader that can load a static pie compiled elf binary. The loader combines the builder
+to rebuild the fractions. It will first decrypt each fraction and append it to the buffer the same way the builder does, but
+instead of writing it to a file to be executed it loads it into memory to be executed. The stloader.asm code will be released
+later this month once it's been completed.
 
 **Closing**
 
